@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}统计图表{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">📊 我的学习统计</h4>
+  <span class="text-muted small">数据来自 <code>/api/stats</code> 接口（JSON）</span>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for label, key, unit in [('累计学习', 'total_minutes', '分钟'),
+                              ('打卡天数', 'total_days', '天'),
+                              ('连续打卡', 'streak', '天'),
+                              ('日均时长', 'avg', '分钟')] %}
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm text-center h-100">
+        <div class="card-body">
+          <div class="text-muted small">{{ label }}</div>
+          <div class="fs-3 fw-bold text-primary" id="num-{{ key }}">—</div>
+          <div class="text-muted small">{{ unit }}</div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title">近 30 天打卡热力图</h6>
+        <div id="chart-heatmap" style="height: 320px;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title">各科目时长占比</h6>
+        <div id="chart-pie" style="height: 320px;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h6 class="card-title">近 7 天学习时长（分钟）</h6>
+        <div id="chart-week" style="height: 320px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/echarts.min.js') }}"></script>
+<script>
+// 页面加载后请求 JSON 接口，再用 ECharts 画三张图
+fetch("{{ url_for('main.api_stats') }}")
+  .then(function (res) { return res.json(); })
+  .then(function (data) {
+    // 顶部数字卡片
+    ['total_minutes', 'total_days', 'streak', 'avg'].forEach(function (k) {
+      document.getElementById('num-' + k).innerText = data[k];
+    });
+
+    // 1. 热力图（日历型）：只画有打卡的日期，颜色深浅代表当天时长
+    var heatMax = 1;
+    data.heatmap.forEach(function (d) { if (d[1] > heatMax) { heatMax = d[1]; } });
+    echarts.init(document.getElementById('chart-heatmap')).setOption({
+      tooltip: { formatter: function (p) { return p.value[0] + '：' + p.value[1] + ' 分钟'; } },
+      visualMap: {
+        min: 0, max: heatMax, orient: 'horizontal', left: 'center', bottom: 0,
+        itemWidth: 12, itemHeight: 90, textStyle: { fontSize: 11 },
+        inRange: { color: ['#e8efff', '#9dbaff', '#4f7cff', '#1a3fb8'] }
+      },
+      calendar: {
+        top: 45, left: 45, right: 20, bottom: 45,
+        cellSize: ['auto', 30], firstDay: 1,
+        range: data.heatmap.length ? [data.heatmap[0][0], data.heatmap[data.heatmap.length - 1][0]] : [],
+        splitLine: { show: false },
+        itemStyle: { borderWidth: 2, borderColor: '#fff', color: '#f4f6fb' },
+        dayLabel: { nameMap: 'ZH', fontSize: 11 },
+        monthLabel: { nameMap: 'ZH', fontSize: 11, margin: 6 },
+        yearLabel: { show: false }
+      },
+      series: [{
+        type: 'heatmap', coordinateSystem: 'calendar',
+        data: data.heatmap.filter(function (d) { return d[1] > 0; })
+      }]
+    });
+
+    // 2. 科目占比饼图
+    echarts.init(document.getElementById('chart-pie')).setOption({
+      tooltip: { trigger: 'item', formatter: '{b}：{c} 分钟（{d}%）' },
+      legend: { bottom: 0, icon: 'circle', itemWidth: 8, itemHeight: 8, textStyle: { fontSize: 11 } },
+      series: [{
+        type: 'pie', radius: ['40%', '60%'], center: ['50%', '42%'],
+        minAngle: 4, avoidLabelOverlap: true,
+        itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+        label: { formatter: '{d}%', fontSize: 11, color: '#333' },
+        labelLine: { length: 8, length2: 8 },
+        data: data.pie.length ? data.pie : [{ name: '暂无数据', value: 1, itemStyle: { color: '#e9ecef' } }]
+      }]
+    });
+
+    // 3. 近 7 天柱状图
+    echarts.init(document.getElementById('chart-week')).setOption({
+      tooltip: { trigger: 'axis' },
+      grid: { left: 40, right: 20, top: 30, bottom: 30 },
+      xAxis: { type: 'category', data: data.week.map(function (d) { return d[0]; }) },
+      yAxis: { type: 'value', name: '分钟' },
+      series: [{
+        type: 'bar', barWidth: '45%',
+        itemStyle: {
+          borderRadius: [6, 6, 0, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1,
+            [{ offset: 0, color: '#4f7cff' }, { offset: 1, color: '#9dbaff' }])
+        },
+        label: { show: true, position: 'top' },
+        data: data.week.map(function (d) { return d[1]; })
+      }]
+    });
+
+    window.addEventListener('resize', function () {
+      document.querySelectorAll('.card-body div[id^=chart-]').forEach(function (el) {
+        var ins = echarts.getInstanceByDom(el);
+        if (ins) { ins.resize(); }
+      });
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}文件太大了{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+  <div class="display-1">📦</div>
+  <h3 class="mt-3">文件超过 8MB 了</h3>
+  <p class="text-muted">请压缩后再上传，或者换一份小一点的文件。</p>
+  <a href="{{ url_for('share.upload') }}" class="btn btn-primary">重新上传</a>
+</div>
+{% endblock %}

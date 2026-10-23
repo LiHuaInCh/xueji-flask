@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}上传资料{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h4 class="mb-1">上传资料</h4>
+        <p class="text-muted small">上传成功积分 +20，单文件最大 8MB</p>
+
+        <!-- enctype 必须是 multipart/form-data 才能传文件 -->
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('share.upload') }}">
+          <div class="mb-3">
+            <label class="form-label">资料标题 <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control" placeholder="例如：数据结构期末复习提纲" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">分类</label>
+            <select name="category" class="form-select">
+              {% for c in categories %}
+                <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">资料简介</label>
+            <textarea name="description" class="form-control" rows="3" placeholder="这份资料讲了什么？适合谁用？"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">选择文件 <span class="text-danger">*</span></label>
+            <input type="file" name="file" class="form-control" required>
+            <div class="form-text">支持 pdf / doc / docx / ppt / pptx / txt / md / zip / rar / png / jpg</div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">确认上传</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}个人中心{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body d-flex flex-wrap align-items-center">
+    <div class="xj-avatar me-3">{{ current_user.username[0]|upper }}</div>
+    <div class="flex-grow-1">
+      <h4 class="mb-1">{{ current_user.username }}
+        <span class="badge bg-warning-subtle text-warning-emphasis">Lv.{{ current_user.level }}</span>
+      </h4>
+      <div class="text-muted small">
+        邮箱：{{ current_user.email|default('未填写', true) }} ·
+        注册时间：{{ current_user.created_at.strftime('%Y-%m-%d') }} ·
+        积分：<strong>{{ current_user.points }}</strong>
+      </div>
+    </div>
+    <a href="{{ url_for('checkin.add') }}" class="btn btn-primary">去打卡</a>
+    <a href="{{ url_for('share.upload') }}" class="btn btn-outline-primary ms-2">上传资料</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for label, value, unit in [('累计学习', total_minutes, '分钟'),
+                                ('打卡天数', total_days, '天'),
+                                ('连续打卡', streak, '天'),
+                                ('我的资料', my_materials|length, '份')] %}
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm text-center h-100">
+        <div class="card-body">
+          <div class="text-muted small">{{ label }}</div>
+          <div class="fs-3 fw-bold text-primary">{{ value }}</div>
+          <div class="text-muted small">{{ unit }}</div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-checkin">我的打卡</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-material">我的资料</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-fav">我的收藏</button></li>
+</ul>
+
+<div class="tab-content bg-white p-3 shadow-sm rounded-bottom">
+  <!-- 我的打卡：分页查询 paginate -->
+  <div class="tab-pane fade show active" id="tab-checkin">
+    <table class="table table-hover align-middle mb-2">
+      <thead class="table-light"><tr><th>日期</th><th>科目</th><th>时长</th><th>心得</th></tr></thead>
+      <tbody>
+        {% for c in pagination.items %}
+          <tr>
+            <td>{{ c.date }}</td>
+            <td>{{ c.subject.icon }} {{ c.subject.name }}</td>
+            <td>{{ c.duration }} 分钟</td>
+            <td class="text-muted small">{{ c.note|default('—', true) }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="text-center text-muted py-4">还没有打卡记录</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if pagination.pages > 1 %}
+      <nav>
+        <ul class="pagination pagination-sm justify-content-center mb-0">
+          <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+            <a class="page-link" href="{{ url_for('main.profile', page=pagination.prev_num) }}">上一页</a>
+          </li>
+          {% for p in pagination.iter_pages() %}
+            {% if p %}
+              <li class="page-item {{ 'active' if p == pagination.page }}">
+                <a class="page-link" href="{{ url_for('main.profile', page=p) }}">{{ p }}</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+          <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+            <a class="page-link" href="{{ url_for('main.profile', page=pagination.next_num) }}">下一页</a>
+          </li>
+        </ul>
+      </nav>
+    {% endif %}
+  </div>
+
+  <!-- 我的资料 -->
+  <div class="tab-pane fade" id="tab-material">
+    <div class="row g-3">
+      {% for m in my_materials %}
+        <div class="col-md-6">
+          <div class="card border h-100">
+            <div class="card-body">
+              <span class="badge bg-primary-subtle text-primary-emphasis">{{ m.category }}</span>
+              <h6 class="mt-2"><a class="text-decoration-none" href="{{ url_for('share.detail', mid=m.id) }}">{{ m.title }}</a></h6>
+              <div class="small text-muted">⬇ {{ m.downloads }} · ⭐ {{ m.score_avg }} · {{ m.size_text }}</div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="col-12 text-center text-muted py-4">还没上传过资料</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 我的收藏（多对多查询） -->
+  <div class="tab-pane fade" id="tab-fav">
+    <ul class="list-group list-group-flush">
+      {% for f in my_favorites %}
+        <li class="list-group-item d-flex justify-content-between">
+          <a class="text-decoration-none" href="{{ url_for('share.detail', mid=f.material.id) }}">{{ f.material.title }}</a>
+          <span class="text-muted small">{{ f.created_at.strftime('%Y-%m-%d') }}</span>
+        </li>
+      {% else %}
+        <li class="list-group-item text-center text-muted py-4">收藏夹还是空的</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

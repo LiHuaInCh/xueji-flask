@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}登录{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <div class="text-center mb-3">
+          <!-- 登录页单独引用一张静态图片 -->
+          <img src="{{ url_for('static', filename='img/logo.svg') }}" width="56" alt="学迹">
+          <h4 class="mt-2 mb-0">欢迎回到学迹</h4>
+          <p class="text-muted small">记录每一天的学习痕迹</p>
+        </div>
+
+        <form method="post" action="{{ url_for('auth.login') }}">
+          <div class="mb-3">
+            <label class="form-label">用户名</label>
+            <input type="text" name="username" class="form-control" placeholder="请输入用户名" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">密码</label>
+            <input type="password" name="password" class="form-control" placeholder="请输入密码" required>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="remember" id="remember">
+            <label class="form-check-label" for="remember">记住我（下次自动登录）</label>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">登 录</button>
+        </form>
+
+        <p class="text-center text-muted small mt-3 mb-0">
+          还没有账号？<a href="{{ url_for('auth.register') }}">立即注册</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

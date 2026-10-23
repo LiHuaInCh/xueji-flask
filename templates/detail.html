@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}{{ material.title }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body p-4">
+        <span class="badge bg-primary-subtle text-primary-emphasis">{{ material.category }}</span>
+        <h4 class="mt-2">{{ material.title }}</h4>
+        <div class="text-muted small mb-3">
+          上传者：{{ material.user.username }} ·
+          时间：{{ material.created_at.strftime('%Y-%m-%d %H:%M') }} ·
+          大小：{{ material.size_text }} ·
+          下载：{{ material.downloads }} 次
+        </div>
+        <p>{{ material.description|default('这位同学很懒，没有写简介。', true) }}</p>
+
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('share.download', mid=material.id) }}" class="btn btn-primary">⬇ 下载资料</a>
+          <button id="fav-btn" class="btn btn-outline-danger"
+                  data-url="{{ url_for('share.favorite', mid=material.id) }}">
+            {{ '❤️ 已收藏' if is_fav else '🤍 收藏' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 评论区：一对多关系 -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="mb-3">💬 评论（{{ material.comments|length }}）</h5>
+
+        {% if current_user.is_authenticated %}
+          <form method="post" action="{{ url_for('share.comment', mid=material.id) }}" class="mb-4">
+            <div class="row g-2">
+              <div class="col-md-3">
+                <select name="rating" class="form-select">
+                  {% for r in [5, 4, 3, 2, 1] %}
+                    <option value="{{ r }}">{{ '★' * r }} {{ r }} 分</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-7">
+                <input type="text" name="content" class="form-control" placeholder="说点什么…" required>
+              </div>
+              <div class="col-md-2 d-grid">
+                <button class="btn btn-primary">发表</button>
+              </div>
+            </div>
+          </form>
+        {% else %}
+          <div class="alert alert-light border small">
+            <a href="{{ url_for('auth.login') }}">登录</a> 后才可以评论和收藏
+          </div>
+        {% endif %}
+
+        <ul class="list-group list-group-flush">
+          {% for c in material.comments|sort(attribute='created_at', reverse=true) %}
+            <li class="list-group-item px-0">
+              <div class="d-flex justify-content-between">
+                <strong>{{ c.user.username }}</strong>
+                <span class="text-warning small">{{ '★' * c.rating }}</span>
+              </div>
+              <div>{{ c.content }}</div>
+              <div class="text-muted small">{{ c.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+            </li>
+          {% else %}
+            <li class="list-group-item px-0 text-muted text-center py-4">还没有评论，来抢沙发</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center">
+        <div class="display-5">⭐</div>
+        <div class="fs-2 fw-bold">{{ material.score_avg }}</div>
+        <div class="text-muted small">共有 {{ material.comments|length }} 条评价</div>
+        <hr>
+        <div class="text-muted small mb-1">所属分类</div>
+        <div class="mb-3">{{ material.category }}</div>
+        <div class="text-muted small mb-1">文件名</div>
+        <div class="small text-break">{{ material.filename|default('无附件', true) }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}每日打卡{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h4 class="mb-3">✍️ 记录今天的学习</h4>
+        <form method="post" action="{{ url_for('checkin.add') }}">
+          <div class="mb-3">
+            <label class="form-label">学习科目</label>
+            <select name="subject_id" class="form-select" required>
+              <option value="">请选择科目…</option>
+              {% for s in subjects %}
+                <option value="{{ s.id }}">{{ s.icon }} {{ s.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">学习时长（分钟）</label>
+            <input type="number" name="duration" class="form-control" min="1" max="1440"
+                   placeholder="例如 60" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">今日心得</label>
+            <textarea name="note" class="form-control" rows="3"
+                      placeholder="今天学了什么？有什么收获？"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">提交打卡（积分 +10）</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <div class="card border-0 shadow-sm text-center">
+          <div class="card-body">
+            <div class="text-muted small">今日已学</div>
+            <div class="fs-2 fw-bold text-primary">{{ today_minutes }}</div>
+            <div class="text-muted small">分钟</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="card border-0 shadow-sm text-center">
+          <div class="card-body">
+            <div class="text-muted small">近 7 天合计</div>
+            <div class="fs-2 fw-bold text-success">{{ week_minutes }}</div>
+            <div class="text-muted small">分钟</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h5 class="mb-2">今天的打卡记录</h5>
+    <div class="table-responsive">
+      <table class="table table-hover bg-white rounded shadow-sm align-middle">
+        <thead class="table-light">
+          <tr><th>科目</th><th>时长</th><th>心得</th></tr>
+        </thead>
+        <tbody>
+          {% for c in today_list %}
+            <tr>
+              <td>{{ c.subject.icon }} {{ c.subject.name }}</td>
+              <td>{{ c.duration }} 分钟</td>
+              <td class="text-muted small">{{ c.note|default('—', true) }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="3" class="text-center text-muted py-4">今天还没有打卡记录</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

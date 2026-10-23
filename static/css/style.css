@@ -1,0 +1,74 @@
+/* ===================== 学迹 · 自定义样式 ===================== */
+
+body {
+  background-color: #f5f7fb;
+  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* 顶部导航渐变 */
+.xj-navbar {
+  background: linear-gradient(90deg, #4f7cff 0%, #6f5cff 100%);
+}
+
+/* 首页大banner */
+.xj-hero {
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #4f7cff 0%, #7a5cff 60%, #b45cff 100%);
+}
+
+/* 头像圆圈 */
+.xj-avatar {
+  width: 64px;
+  height: 64px;
+  line-height: 64px;
+  text-align: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f7cff, #7a5cff);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+/* 卡片悬停微微上浮 */
+.xj-card {
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.xj-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 .75rem 1.5rem rgba(79, 124, 255, .18) !important;
+}
+
+.card {
+  border-radius: 12px;
+}
+
+/* 统计数字 */
+.fs-3.fw-bold.text-primary {
+  letter-spacing: .5px;
+}
+
+/* ===================== 响应式：小屏幕适配 ===================== */
+@media (max-width: 768px) {
+  .xj-hero {
+    text-align: center;
+    padding: 24px 16px !important;
+  }
+  .xj-hero .btn {
+    width: 100%;
+    margin: 4px 0 0 0 !important;
+  }
+  .xj-avatar {
+    width: 48px;
+    height: 48px;
+    line-height: 48px;
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .display-6 {
+    font-size: 1.8rem;
+  }
+  .table-responsive {
+    font-size: 14px;
+  }
+}

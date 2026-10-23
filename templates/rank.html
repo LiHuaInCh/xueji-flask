@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}排行榜{% endblock %}
+
+{% block content %}
+<h4 class="mb-3">🏆 学习时长排行榜</h4>
+
+<div class="table-responsive">
+  <table class="table table-hover bg-white shadow-sm rounded align-middle">
+    <thead class="table-light">
+      <tr><th style="width:80px">名次</th><th>同学</th><th>累计时长</th><th>打卡次数</th></tr>
+    </thead>
+    <tbody>
+      {% for username, minutes, times in rows %}
+        <tr>
+          <td>
+            {% if loop.index == 1 %}🥇
+            {% elif loop.index == 2 %}🥈
+            {% elif loop.index == 3 %}🥉
+            {% else %}{{ loop.index }}{% endif %}
+          </td>
+          <td>{{ username }}</td>
+          <td><strong>{{ minutes }}</strong> 分钟（{{ (minutes / 60)|round(1) }} 小时）</td>
+          <td>{{ times }} 次</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="text-center text-muted py-5">还没有人打卡</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
